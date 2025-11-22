@@ -8,5 +8,7 @@ namespace Auto_Rental.Data
         {
         }
         public DbSet<Car> Cars { get; set; }
+        public DbSet<Rental> Rentals { get; set; }
+
     }
 }
