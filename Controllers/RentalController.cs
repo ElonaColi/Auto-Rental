@@ -27,7 +27,7 @@ namespace Auto_Rental.Controllers
                 {
                     Id = r.Id,
                     CarId = r.CarId,
-                    Brand = r.Car.Brand,
+                    Brand = r.Car!.Brand,
                     StartDate = r.StartDate,
                     EndDate = r.EndDate,
                     PricePerDay = r.PricePerDay
@@ -37,9 +37,7 @@ namespace Auto_Rental.Controllers
             return Ok(rentals);
         }
 
-        // ============================
-        // GET PAGINATED RENTALS
-        // ============================
+        //pagination,filtering,sorting, 
         [HttpGet("paginated")]
         public async Task<ActionResult> GetPaginatedRentals(
          int page = 1,
@@ -60,12 +58,12 @@ namespace Auto_Rental.Controllers
                 .Include(r => r.Car)
                 .AsQueryable();
 
-            // --- FILTERING ---
+            // filtering
             if (carId.HasValue)
                 query = query.Where(r => r.CarId == carId.Value);
 
             if (!string.IsNullOrEmpty(brand))
-                query = query.Where(r => r.Car.Brand.Contains(brand));
+                query = query.Where(r => r.Car != null && r.Car.Brand.Contains(brand));
 
             if (startDate.HasValue)
                 query = query.Where(r => r.StartDate >= startDate.Value);
@@ -79,18 +77,18 @@ namespace Auto_Rental.Controllers
             if (priceMax.HasValue)
                 query = query.Where(r => r.PricePerDay <= priceMax.Value);
 
-            // --- PROJECTION ---
+            // projection
             var projectedQuery = query.Select(r => new RentalDto
             {
                 Id = r.Id,
                 CarId = r.CarId,
-                Brand = r.Car.Brand,
+                Brand = r.Car!.Brand,
                 StartDate = r.StartDate,
                 EndDate = r.EndDate,
                 PricePerDay = r.PricePerDay
             });
 
-            // --- SORTING ---
+            // sorting
             projectedQuery = (sortBy.ToLower(), sortOrder.ToLower()) switch
             {
                 ("brand", "asc") => projectedQuery.OrderBy(r => r.Brand),
@@ -101,10 +99,10 @@ namespace Auto_Rental.Controllers
                 ("enddate", "desc") => projectedQuery.OrderByDescending(r => r.EndDate),
                 ("priceperday", "asc") => projectedQuery.OrderBy(r => r.PricePerDay),
                 ("priceperday", "desc") => projectedQuery.OrderByDescending(r => r.PricePerDay),
-                _ => projectedQuery.OrderBy(r => r.Id) // default
+                _ => projectedQuery.OrderBy(r => r.Id)
             };
 
-            // --- PAGINATION ---
+            // pagination
             var totalItems = await projectedQuery.CountAsync();
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
