@@ -35,18 +35,56 @@ namespace Auto_Rental.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CarReadDto>>> GetCars()
+        public async Task<ActionResult<IEnumerable<CarReadDto>>> GetCars(
+            [FromQuery] string? search,
+            [FromQuery] string? brand,
+            [FromQuery] string? model,
+            [FromQuery] string? sortBy = "Id",
+            [FromQuery] bool sortDesc = false,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var cars = await _context.Cars
-                .Select(c => new CarReadDto
+            var query = _context.Cars.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(c => c.Brand.Contains(search) || c.Model.Contains(search));
+            if (!string.IsNullOrEmpty(brand))
+                query = query.Where(c => c.Brand == brand);
+            if (!string.IsNullOrEmpty(model))
+                query = query.Where(c => c.Model == model);
+
+            query = (sortBy.ToLower(), sortDesc) switch
+            {
+                ("brand", false) => query.OrderBy(c => c.Brand),
+                ("brand", true) => query.OrderByDescending(c => c.Brand),
+                ("model", false) => query.OrderBy(c => c.Model),
+                ("model", true) => query.OrderByDescending(c => c.Model),
+                ("year", false) => query.OrderBy(c => c.Year),
+                ("year", true) => query.OrderByDescending(c => c.Year),
+                _ => query.OrderBy(c => c.Id)
+            };
+
+            var totalItems = await query.CountAsync();
+            var cars = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var response = new
+            {
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize,
+                Items = cars.Select(c => new CarReadDto
                 {
                     Id = c.Id,
                     Brand = c.Brand,
                     Model = c.Model,
                     Year = c.Year
-                }).ToListAsync();
+                })
+            };
 
-            return Ok(cars);
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
