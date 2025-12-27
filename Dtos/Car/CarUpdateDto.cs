@@ -5,5 +5,8 @@
         public string Brand { get; set; } = null!;
         public string Model { get; set; } = null!;
         public string Year { get; set; } = null!;
+
+        public bool IsActive { get; set; } = true;
+        
     }
 }
