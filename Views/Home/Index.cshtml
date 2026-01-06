@@ -1,8 +1,18 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<h1>Welcome to Auto Rental</h1>
+@if (!SignInManager.IsSignedIn(User))
+{
+    <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Login</a>
+    <a asp-controller="Account" asp-action="Register" class="btn btn-secondary">Sign Up</a>
+}
+else
+{
+    <p>Hello, @User.Identity?.Name</p>
+    <form asp-controller="Account" asp-action="Logout" method="post">
+        <button type="submit" class="btn btn-danger">Logout</button>
+    </form>
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
