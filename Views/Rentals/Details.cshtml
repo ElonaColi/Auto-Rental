@@ -1,0 +1,42 @@
+﻿@model Auto_Rental.Models.Rental
+@{
+    ViewData["Title"] = "Rental Details";
+    Layout = "_Layout";
+}
+
+<h1>Rental Details</h1>
+
+<dl class="row">
+    <dt class="col-sm-2">Car</dt>
+    <dd class="col-sm-10">@Model.Car?.Brand @Model.Car?.Model</dd>
+
+    <dt class="col-sm-2">Start Date</dt>
+    <dd class="col-sm-10">@Model.StartDate.ToString("yyyy-MM-dd")</dd>
+
+    <dt class="col-sm-2">End Date</dt>
+    <dd class="col-sm-10">@Model.EndDate.ToString("yyyy-MM-dd")</dd>
+
+    <dt class="col-sm-2">Price per Day</dt>
+    <dd class="col-sm-10">@Model.PricePerDay.ToString("C")</dd>
+
+    <dt class="col-sm-2">Total Days</dt>
+    <dd class="col-sm-10">
+        @{
+            var days = (Model.EndDate - Model.StartDate).Days;
+        }
+        @days days
+    </dd>
+
+    <dt class="col-sm-2">Total Price</dt>
+    <dd class="col-sm-10">
+        @{
+            var total = days * Model.PricePerDay;
+        }
+        @total.ToString("C")
+    </dd>
+</dl>
+
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</p>

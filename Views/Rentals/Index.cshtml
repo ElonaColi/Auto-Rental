@@ -1,0 +1,44 @@
+﻿@model IEnumerable<Auto_Rental.Models.Rental>
+@{
+    ViewData["Title"] = "Rentals List";
+    Layout = "_Layout";
+}
+
+<h1>Rentals</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Rental</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Car</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Price/Day</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var rental in Model)
+        {
+            var days = (rental.EndDate - rental.StartDate).Days;
+            var total = days * rental.PricePerDay;
+
+            <tr>
+                <td>@rental.Car?.Brand @rental.Car?.Model</td>
+                <td>@rental.StartDate.ToString("yyyy-MM-dd")</td>
+                <td>@rental.EndDate.ToString("yyyy-MM-dd")</td>
+                <td>@rental.PricePerDay.ToString("C")</td>
+                <td>@total.ToString("C")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@rental.Id" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Edit" asp-route-id="@rental.Id" class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@rental.Id" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

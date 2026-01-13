@@ -32,6 +32,11 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Cars" asp-action="Index">Cars</a>
                             </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Rentals" asp-action="Index">Rentals</a>
+                            </li>
+
                             @if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item">

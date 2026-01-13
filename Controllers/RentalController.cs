@@ -1,180 +1,196 @@
 ﻿using Auto_Rental.Data;
-using Auto_Rental.Dtos.Rental;
 using Auto_Rental.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Auto_Rental.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class RentalController : ControllerBase
+    [Authorize]
+    public class RentalsController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public RentalController(ApplicationDbContext context)
+        public RentalsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-       //get all rentals
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<RentalDto>>> GetRentals()
+        [AllowAnonymous]
+        public async Task<IActionResult> Index(
+            string searchString,
+            string sortOrder,
+            int? carId,
+            DateTime? startDate,
+            DateTime? endDate,
+            int page = 1)
         {
-            var rentals = await _context.Rentals
-                .Include(r => r.Car)
-                .Select(r => new RentalDto
-                {
-                    Id = r.Id,
-                    CarId = r.CarId,
-                    Brand = r.Car!.Brand,
-                    StartDate = r.StartDate,
-                    EndDate = r.EndDate,
-                    PricePerDay = r.PricePerDay
-                })
-                .ToListAsync();
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["CarId"] = carId;
+            ViewData["StartDate"] = startDate;
+            ViewData["EndDate"] = endDate;
 
-            return Ok(rentals);
-        }
+            ViewBag.Cars = new SelectList(await _context.Cars.ToListAsync(), "Id", "Brand");
 
-        //pagination,filtering,sorting, 
-        [HttpGet("paginated")]
-        public async Task<ActionResult> GetPaginatedRentals(
-         int page = 1,
-         int pageSize = 10,
-         int? carId = null,
-         string? brand = null,
-         DateTime? startDate = null,
-         DateTime? endDate = null,
-         double? priceMin = null,
-         double? priceMax = null,
-         string sortBy = "Id",
-         string sortOrder = "asc")
-        {
-            if (page <= 0) page = 1;
-            if (pageSize <= 0) pageSize = 10;
+            IQueryable<Rental> rentals = _context.Rentals.Include(r => r.Car);
 
-            var query = _context.Rentals
-                .Include(r => r.Car)
-                .AsQueryable();
-
-            // filtering
             if (carId.HasValue)
-                query = query.Where(r => r.CarId == carId.Value);
+            {
+                rentals = rentals.Where(r => r.CarId == carId.Value);
+            }
 
-            if (!string.IsNullOrEmpty(brand))
-                query = query.Where(r => r.Car != null && r.Car.Brand.Contains(brand));
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                rentals = rentals.Where(r =>
+                    r.Car != null &&
+                    (r.Car.Brand.Contains(searchString) ||
+                     r.Car.Model.Contains(searchString)));
+            }
 
             if (startDate.HasValue)
-                query = query.Where(r => r.StartDate >= startDate.Value);
+            {
+                rentals = rentals.Where(r => r.StartDate >= startDate.Value);
+            }
 
             if (endDate.HasValue)
-                query = query.Where(r => r.EndDate <= endDate.Value);
-
-            if (priceMin.HasValue)
-                query = query.Where(r => r.PricePerDay >= priceMin.Value);
-
-            if (priceMax.HasValue)
-                query = query.Where(r => r.PricePerDay <= priceMax.Value);
-
-            // projection
-            var projectedQuery = query.Select(r => new RentalDto
             {
-                Id = r.Id,
-                CarId = r.CarId,
-                Brand = r.Car!.Brand,
-                StartDate = r.StartDate,
-                EndDate = r.EndDate,
-                PricePerDay = r.PricePerDay
-            });
+                rentals = rentals.Where(r => r.EndDate <= endDate.Value);
+            }
 
-            // sorting
-            projectedQuery = (sortBy.ToLower(), sortOrder.ToLower()) switch
+            rentals = sortOrder switch
             {
-                ("brand", "asc") => projectedQuery.OrderBy(r => r.Brand),
-                ("brand", "desc") => projectedQuery.OrderByDescending(r => r.Brand),
-                ("startdate", "asc") => projectedQuery.OrderBy(r => r.StartDate),
-                ("startdate", "desc") => projectedQuery.OrderByDescending(r => r.StartDate),
-                ("enddate", "asc") => projectedQuery.OrderBy(r => r.EndDate),
-                ("enddate", "desc") => projectedQuery.OrderByDescending(r => r.EndDate),
-                ("priceperday", "asc") => projectedQuery.OrderBy(r => r.PricePerDay),
-                ("priceperday", "desc") => projectedQuery.OrderByDescending(r => r.PricePerDay),
-                _ => projectedQuery.OrderBy(r => r.Id)
+                "startdate_desc" => rentals.OrderByDescending(r => r.StartDate),
+                "startdate_asc" => rentals.OrderBy(r => r.StartDate),
+                "enddate_desc" => rentals.OrderByDescending(r => r.EndDate),
+                "enddate_asc" => rentals.OrderBy(r => r.EndDate),
+                "price_desc" => rentals.OrderByDescending(r => r.PricePerDay),
+                "price_asc" => rentals.OrderBy(r => r.PricePerDay),
+                _ => rentals.OrderBy(r => r.Id)
             };
 
-            // pagination
-            var totalItems = await projectedQuery.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            int pageSize = 5;
+            int totalItems = await rentals.CountAsync();
 
-            var rentals = await projectedQuery
+            var pagedRentals = await rentals
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            return Ok(new
-            {
-                items = rentals,
-                totalItems,
-                totalPages,
-                currentPage = page,
-                pageSize
-            });
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentPage = page;
+
+            return View(pagedRentals);
         }
 
-        //create 
-        [HttpPost]
-        public async Task<ActionResult> CreateRental(RentalCreateDto dto)
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(int id)
         {
-           
-            var carExists = await _context.Cars.AnyAsync(c => c.Id == dto.CarId);
-            if (!carExists)
-                return BadRequest(new { message = "Car with this ID does not exist." });
+            var rental = await _context.Rentals
+                .Include(r => r.Car)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-            var rental = new Rental
+            if (rental == null)
             {
-                CarId = dto.CarId,
-                StartDate = dto.StartDate,
-                EndDate = dto.EndDate,
-                PricePerDay = dto.PricePerDay
-            };
+                return NotFound();
+            }
+
+            return View(rental);
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create()
+        {
+            ViewBag.CarId = new SelectList(await _context.Cars.ToListAsync(), "Id", "Brand");
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([Bind("CarId,StartDate,EndDate,PricePerDay")] Rental rental)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.CarId = new SelectList(await _context.Cars.ToListAsync(), "Id", "Brand", rental.CarId);
+                return View(rental);
+            }
+
+            if (rental.EndDate <= rental.StartDate)
+            {
+                ModelState.AddModelError("EndDate", "End date must be after start date");
+                ViewBag.CarId = new SelectList(await _context.Cars.ToListAsync(), "Id", "Brand", rental.CarId);
+                return View(rental);
+            }
 
             _context.Rentals.Add(rental);
             await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Rental created successfully." });
+            return RedirectToAction(nameof(Index));
         }
 
-        //update
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateRental(int id, RentalUpdateDto dto)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id)
         {
             var rental = await _context.Rentals.FindAsync(id);
-
             if (rental == null)
-                return NotFound(new { message = "Rental not found." });
+                return NotFound();
 
-            rental.StartDate = dto.StartDate;
-            rental.EndDate = dto.EndDate;
-            rental.PricePerDay = dto.PricePerDay;
+            ViewBag.CarId = new SelectList(await _context.Cars.ToListAsync(), "Id", "Brand", rental.CarId);
+            return View(rental);
+        }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,CarId,StartDate,EndDate,PricePerDay")] Rental rental)
+        {
+            if (id != rental.Id)
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.CarId = new SelectList(await _context.Cars.ToListAsync(), "Id", "Brand", rental.CarId);
+                return View(rental);
+            }
+
+            if (rental.EndDate <= rental.StartDate)
+            {
+                ModelState.AddModelError("EndDate", "End date must be after start date");
+                ViewBag.CarId = new SelectList(await _context.Cars.ToListAsync(), "Id", "Brand", rental.CarId);
+                return View(rental);
+            }
+
+            _context.Rentals.Update(rental);
             await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Rental updated successfully." });
+            return RedirectToAction(nameof(Index));
         }
 
-        //delete
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteRental(int id)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
         {
-            var rental = await _context.Rentals.FindAsync(id);
+            var rental = await _context.Rentals
+                .Include(r => r.Car)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (rental == null)
-                return NotFound(new { message = "Rental not found." });
+                return NotFound();
+
+            return View(rental);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var rental = await _context.Rentals.FindAsync(id);
+            if (rental == null)
+                return NotFound();
 
             _context.Rentals.Remove(rental);
             await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Rental deleted successfully." });
+            return RedirectToAction(nameof(Index));
         }
     }
 }
