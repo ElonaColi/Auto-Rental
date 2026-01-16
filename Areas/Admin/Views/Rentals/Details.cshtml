@@ -1,0 +1,75 @@
+﻿@model Auto_Rental.Models.Rental
+@{
+    ViewData["Title"] = "Rental Details";
+    Layout = "_Layout";
+}
+
+<h1>Rental Details</h1>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Car</dt>
+            <dd class="col-sm-9">
+                @if (Model.Car != null)
+                {
+                    @Model.Car.Brand @Model.Car.Model
+                }
+                else
+                {
+                    <span class="text-muted">Car not found</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Start Date</dt>
+            <dd class="col-sm-9">@Model.StartDate.ToString("yyyy-MM-dd")</dd>
+
+            <dt class="col-sm-3">End Date</dt>
+            <dd class="col-sm-9">@Model.EndDate.ToString("yyyy-MM-dd")</dd>
+
+            <dt class="col-sm-3">Price per Day</dt>
+            <dd class="col-sm-9">@Model.PricePerDay.ToString("C")</dd>
+
+            <dt class="col-sm-3">Total Days</dt>
+            <dd class="col-sm-9">
+                @{
+                    var days = (Model.EndDate - Model.StartDate).Days;
+                }
+                @days days
+            </dd>
+
+            <dt class="col-sm-3">Total Price</dt>
+            <dd class="col-sm-9">
+                @{
+                    var total = days * Model.PricePerDay;
+                }
+                @total.ToString("C")
+            </dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">
+                <span class="badge @GetStatusBadgeClass(Model.Status)">
+                    @Model.Status
+                </span>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>
+
+@functions {
+    private string GetStatusBadgeClass(Auto_Rental.Models.RentalStatus status)
+    {
+        return status switch
+        {
+            Auto_Rental.Models.RentalStatus.Pending => "bg-warning",
+            Auto_Rental.Models.RentalStatus.Confirmed => "bg-success",
+            Auto_Rental.Models.RentalStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

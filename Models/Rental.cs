@@ -3,6 +3,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Auto_Rental.Models
 {
+    public enum RentalStatus
+    {
+        Pending,
+        Confirmed,
+        Cancelled
+    }
     public class Rental
     {
         public int Id { get; set; }
@@ -28,5 +34,8 @@ namespace Auto_Rental.Models
         [Display(Name = "Price per Day")]
         [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
         public double PricePerDay { get; set; }
+
+        [Required]
+        public RentalStatus Status { get; set; } = RentalStatus.Pending;
     }
 }

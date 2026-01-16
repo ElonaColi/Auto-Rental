@@ -287,6 +287,7 @@
             .admin-sidebar::-webkit-scrollbar-thumb:hover {
                 background: #1abc9c;
             }
+
     </style>
 </head>
 <body>
@@ -297,12 +298,16 @@
             </div>
             <nav class="nav flex-column">
                 <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" && ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "active" : "")"
-                   asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                   href="@Url.Action("Index", "Dashboard", new { area = "Admin" })">
                     <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                 </a>
-                <a class="nav-link" href="/Rentals">
+
+                <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Rentals" ? "active" : "")"
+                   href="@Url.Action("Index", "Rentals", new { area = "Admin" })">
                     <i class="fas fa-clipboard-list me-2"></i> Manage Rentals
                 </a>
+
+
                 <a class="nav-link" href="/Cars">
                     <i class="fas fa-car me-2"></i> Manage Cars
                 </a>
@@ -312,15 +317,14 @@
                 <a class="nav-link" href="/Customers">
                     <i class="fas fa-users me-2"></i> Manage Customers
                 </a>
+
                 <form asp-area=""
                       asp-controller="Account"
                       asp-action="Logout"
                       method="post"
-                      class="d-inline">
-
+                      class="mt-3">
                     @Html.AntiForgeryToken()
-
-                    <button type="submit" class="nav-link btn btn-link text-start w-100">
+                    <button type="submit" class="btn btn-outline-light w-100 d-flex align-items-center">
                         <i class="fas fa-sign-out-alt me-2"></i> Logout
                     </button>
                 </form>

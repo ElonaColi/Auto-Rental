@@ -1,0 +1,59 @@
+﻿@model IEnumerable<Auto_Rental.Models.Rental>
+@using Auto_Rental.Models
+
+@{
+    ViewData["Title"] = "Manage Rentals";
+}
+
+<h1>Manage Rentals</h1>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Car</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var rental in Model)
+        {
+            var days = (rental.EndDate - rental.StartDate).Days;
+            var total = days * rental.PricePerDay;
+
+            <tr>
+                <td>@rental.Id</td>
+                <td>@rental.Car?.Brand @rental.Car?.Model</td>
+                <td>@rental.StartDate.ToString("yyyy-MM-dd")</td>
+                <td>@rental.EndDate.ToString("yyyy-MM-dd")</td>
+                <td>@total.ToString("C")</td>
+
+                <td>
+                    <form asp-action="ChangeStatus"
+                          asp-route-id="@rental.Id"
+                          method="post">
+                        @Html.AntiForgeryToken()
+
+                        <select asp-for="@rental.Status"
+                                asp-items="Html.GetEnumSelectList<RentalStatus>()"
+                                name="newStatus"
+                                class="form-select form-select-sm"
+                                onchange="this.form.submit()">
+                        </select>
+                    </form>
+                </td>
+
+                <td>
+                    <a asp-action="Details" asp-route-id="@rental.Id" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Edit" asp-route-id="@rental.Id" class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@rental.Id" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -28,21 +28,27 @@ namespace Auto_Rental.Areas.Admin.Controllers
             int totalRentals = 0;
             int pendingRentals = 0;
             int confirmedRentals = 0;
+            int activeRentals = 0;
+            int availabilityPercentage = 0;
 
             try
             {
                 totalRentals = await _context.Rentals.CountAsync();
 
-                var rentalsQuery = _context.Rentals.AsQueryable();
-
                 var availableCars = await _context.Cars.CountAsync(c => c.IsActive);
-                var availabilityPercentage = totalCars > 0 ? (availableCars * 100) / totalCars : 0;
+                availabilityPercentage = totalCars > 0 ? (availableCars * 100) / totalCars : 0;
 
                 var today = DateTime.Today;
 
-                var activeRentals = await _context.Rentals
-                    .CountAsync(r => r.StartDate <= today && r.EndDate >= today);
+                // Vetëm assign, mos deklaro përsëri
+                pendingRentals = await _context.Rentals
+                    .CountAsync(r => r.Status == RentalStatus.Pending);
 
+                confirmedRentals = await _context.Rentals
+                    .CountAsync(r => r.Status == RentalStatus.Confirmed);
+
+                activeRentals = await _context.Rentals
+                    .CountAsync(r => r.StartDate <= today && r.EndDate >= today);
 
                 ViewBag.TotalCars = totalCars;
                 ViewBag.TotalCustomers = totalCustomers;
@@ -52,14 +58,6 @@ namespace Auto_Rental.Areas.Admin.Controllers
                 ViewBag.ActiveRentals = activeRentals;
                 ViewBag.AvailabilityPercentage = availabilityPercentage;
 
-                try
-                {
-                    
-                }
-                catch
-                {
-                    ViewBag.TotalRevenue = "0.00";
-                }
             }
             catch (Exception ex)
             {
@@ -69,7 +67,7 @@ namespace Auto_Rental.Areas.Admin.Controllers
                 ViewBag.TotalRentals = 0;
                 ViewBag.PendingRentals = 0;
                 ViewBag.ConfirmedRentals = 0;
-                ViewBag.TotalRevenue = "0.00";
+                ViewBag.ActiveRentals = 0;
                 ViewBag.AvailabilityPercentage = 0;
             }
 

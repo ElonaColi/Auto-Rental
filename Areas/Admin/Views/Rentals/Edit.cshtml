@@ -1,0 +1,103 @@
+﻿@model Auto_Rental.Models.Rental
+@{
+    ViewData["Title"] = "Edit Rental";
+    Layout = "_Layout";
+}
+
+<h1>Edit Rental</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Status" 
+
+            <div class="form-group mb-3">
+                <label asp-for="CarId" class="control-label"></label>
+                <select asp-for="CarId" class="form-control" asp-items="ViewBag.CarId">
+                    <option value="">-- Select Car --</option>
+                </select>
+                <span asp-validation-for="CarId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="StartDate" class="control-label"></label>
+                <input asp-for="StartDate" class="form-control" type="date" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="EndDate" class="control-label"></label>
+                <input asp-for="EndDate" class="form-control" type="date" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="PricePerDay" class="control-label"></label>
+                <input asp-for="PricePerDay" class="form-control" />
+                <span asp-validation-for="PricePerDay" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="control-label">Current Status</label>
+                <div>
+                    <span class="badge @GetStatusBadgeClass(Model.Status)">
+                        @Model.Status
+                    </span>
+                    <small class="text-muted d-block mt-1">
+                        (Status can only be changed using the dropdown on the main page)
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            $('form').submit(function(e) {
+                var startDate = new Date($('#StartDate').val());
+                var endDate = new Date($('#EndDate').val());
+
+                if (endDate <= startDate) {
+                    alert('End date must be after start date!');
+                    e.preventDefault();
+                    return false;
+                }
+
+                var price = parseFloat($('#PricePerDay').val());
+                if (price <= 0) {
+                    alert('Price per day must be greater than 0!');
+                    e.preventDefault();
+                    return false;
+                }
+
+                return true;
+            });
+        });
+    </script>
+}
+
+@functions {
+    private string GetStatusBadgeClass(Auto_Rental.Models.RentalStatus status)
+    {
+        return status switch
+        {
+            Auto_Rental.Models.RentalStatus.Pending => "bg-warning",
+            Auto_Rental.Models.RentalStatus.Confirmed => "bg-success",
+            Auto_Rental.Models.RentalStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
