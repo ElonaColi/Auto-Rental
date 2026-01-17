@@ -1,6 +1,7 @@
-using Auto_Rental.Data;
+﻿using Auto_Rental.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.Features; 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,10 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 104857600; 
+});
 
 builder.Services.AddControllersWithViews();
 
@@ -70,7 +75,6 @@ app.MapAreaControllerRoute(
     name: "AdminArea",
     areaName: "Admin",
     pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}");
-
 
 app.MapControllerRoute(
     name: "default",

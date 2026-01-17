@@ -12,6 +12,10 @@ namespace Auto_Rental.Models
         public string? ImageUrl { get; set; }
         [NotMapped]
         public IFormFile? ImageFile { get; set; }
+        public decimal PricePerDay { get; set; }
+        public string? Location { get; set; }
+        public string? FuelType { get; set; }
+        public string? Description { get; set; }
 
 
     }

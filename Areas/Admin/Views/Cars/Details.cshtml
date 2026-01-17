@@ -20,6 +20,10 @@
         <p><strong>Brand:</strong> @Model.Brand</p>
         <p><strong>Model:</strong> @Model.Model</p>
         <p><strong>Year:</strong> @Model.Year</p>
+        <p><strong>Price Per Day:</strong> @Model.PricePerDay.ToString("C")</p>
+        <p><strong>Location:</strong> @Model.Location</p>
+        <p><strong>Fuel Type:</strong> @Model.FuelType</p>
+        <p><strong>Description:</strong> @Model.Description</p>
         <p><strong>Active:</strong> @(Model.IsActive ? "Yes" : "No")</p>
 
         <div class="d-flex justify-content-between mt-3">
@@ -52,4 +56,3 @@
             box-shadow: 0 6px 18px rgba(0,0,0,0.1);
         }
 </style>
-

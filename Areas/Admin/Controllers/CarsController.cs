@@ -38,16 +38,24 @@ namespace Auto_Rental.Areas.Admin.Controllers
 
             if (car.ImageFile != null && car.ImageFile.Length > 0)
             {
-                var folderPath = Path.Combine(_env.WebRootPath, "images/cars");
-                Directory.CreateDirectory(folderPath);
+                try
+                {
+                    var folderPath = Path.Combine(_env.WebRootPath, "images", "cars");
+                    Directory.CreateDirectory(folderPath);
 
-                var fileName = Guid.NewGuid() + Path.GetExtension(car.ImageFile.FileName);
-                var filePath = Path.Combine(folderPath, fileName);
+                    var fileName = Guid.NewGuid() + Path.GetExtension(car.ImageFile.FileName);
+                    var filePath = Path.Combine(folderPath, fileName);
 
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await car.ImageFile.CopyToAsync(stream);
+                    using var stream = new FileStream(filePath, FileMode.Create);
+                    await car.ImageFile.CopyToAsync(stream);
 
-                car.ImageUrl = "/images/cars/" + fileName;
+                    car.ImageUrl = "/images/cars/" + fileName;
+                }
+                catch
+                {
+                    ModelState.AddModelError("", "Error uploading image");
+                    return View(car);
+                }
             }
 
             _context.Cars.Add(car);
@@ -77,19 +85,31 @@ namespace Auto_Rental.Areas.Admin.Controllers
             carFromDb.Model = car.Model;
             carFromDb.Year = car.Year;
             carFromDb.IsActive = car.IsActive;
+            carFromDb.PricePerDay = car.PricePerDay;
+            carFromDb.Location = car.Location;
+            carFromDb.FuelType = car.FuelType;
+            carFromDb.Description = car.Description;
 
             if (car.ImageFile != null && car.ImageFile.Length > 0)
             {
-                var folderPath = Path.Combine(_env.WebRootPath, "images/cars");
-                Directory.CreateDirectory(folderPath);
+                try
+                {
+                    var folderPath = Path.Combine(_env.WebRootPath, "images", "cars");
+                    Directory.CreateDirectory(folderPath);
 
-                var fileName = Guid.NewGuid() + Path.GetExtension(car.ImageFile.FileName);
-                var filePath = Path.Combine(folderPath, fileName);
+                    var fileName = Guid.NewGuid() + Path.GetExtension(car.ImageFile.FileName);
+                    var filePath = Path.Combine(folderPath, fileName);
 
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await car.ImageFile.CopyToAsync(stream);
+                    using var stream = new FileStream(filePath, FileMode.Create);
+                    await car.ImageFile.CopyToAsync(stream);
 
-                carFromDb.ImageUrl = "/images/cars/" + fileName;
+                    carFromDb.ImageUrl = "/images/cars/" + fileName;
+                }
+                catch
+                {
+                    ModelState.AddModelError("", "Error uploading image");
+                    return View(car);
+                }
             }
 
             _context.Cars.Update(carFromDb);
