@@ -1,26 +1,68 @@
 ﻿@model Auto_Rental.Models.Car
+
 @{
     ViewData["Title"] = "Car Details";
-    Layout = "_Layout";
 }
 
-<h1>Car Details</h1>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="position-relative">
+                <img src="@Model.ImageUrl ?? " /images/default-car.jpg""
+                     class="img-fluid rounded shadow"
+                     style="object-fit:cover; width:100%; max-height:400px;" />
 
-<dl class="row">
-    <dt class="col-sm-2">Brand</dt>
-    <dd class="col-sm-10">@Model.Brand</dd>
+                <span class="badge bg-success position-absolute top-0 start-0 m-3">
+                    @Model.PricePerDay.ToString("C") / day
+                </span>
 
-    <dt class="col-sm-2">Model</dt>
-    <dd class="col-sm-10">@Model.Model</dd>
+                <span class="badge bg-info text-dark position-absolute top-0 end-0 m-3">
+                    @Model.Location
+                </span>
+            </div>
+        </div>
 
-    <dt class="col-sm-2">Year</dt>
-    <dd class="col-sm-10">@Model.Year</dd>
+        <div class="col-md-6 d-flex flex-column">
+            <h2>@Model.Brand @Model.Model</h2>
+            <p class="mb-1"><strong>Year:</strong> @Model.Year</p>
+            <p class="mb-1"><strong>Fuel Type:</strong> @Model.FuelType</p>
+            <p class="mb-1"><strong>Location:</strong> @Model.Location</p>
+            <p class="mb-3"><strong>Price Per Day:</strong> @Model.PricePerDay.ToString("C")</p>
 
-    <dt class="col-sm-2">Active</dt>
-    <dd class="col-sm-10">@Model.IsActive</dd>
-</dl>
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <p class="text-muted">@Model.Description</p>
+            }
 
-<p>
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-</p>
+            <div class="mt-auto">
+                <a href="@Url.Action("Index", "Cars")" class="btn btn-secondary me-2">
+                    Back to List
+                </a>
+                <a href="#" class="btn btn-success">
+                    Rent Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5em 0.7em;
+    }
+
+    .btn {
+        font-weight: 500;
+        min-width: 120px;
+    }
+
+    img.img-fluid {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        img.img-fluid:hover {
+            transform: scale(1.03);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+</style>
