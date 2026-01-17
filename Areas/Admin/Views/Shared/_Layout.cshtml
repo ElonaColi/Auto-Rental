@@ -306,14 +306,11 @@
                    href="@Url.Action("Index", "Rentals", new { area = "Admin" })">
                     <i class="fas fa-clipboard-list me-2"></i> Manage Rentals
                 </a>
-
-
-                <a class="nav-link" href="/Cars">
+                <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Cars" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")"
+                   href="@Url.Action("Index", "Cars", new { area = "Admin" })">
                     <i class="fas fa-car me-2"></i> Manage Cars
                 </a>
-                <a class="nav-link" href="/Cars/Create">
-                    <i class="fas fa-plus-circle me-2"></i> Add New Car
-                </a>
+               
                 <a class="nav-link" href="/Customers">
                     <i class="fas fa-users me-2"></i> Manage Customers
                 </a>
