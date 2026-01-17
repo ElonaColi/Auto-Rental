@@ -28,6 +28,7 @@ namespace Auto_Rental.Areas.Admin.Controllers
             int totalRentals = 0;
             int pendingRentals = 0;
             int confirmedRentals = 0;
+            int cancelledRentals = 0;
             int activeRentals = 0;
             int availabilityPercentage = 0;
 
@@ -40,12 +41,14 @@ namespace Auto_Rental.Areas.Admin.Controllers
 
                 var today = DateTime.Today;
 
-                // Vetëm assign, mos deklaro përsëri
                 pendingRentals = await _context.Rentals
                     .CountAsync(r => r.Status == RentalStatus.Pending);
 
                 confirmedRentals = await _context.Rentals
                     .CountAsync(r => r.Status == RentalStatus.Confirmed);
+
+                cancelledRentals = await _context.Rentals
+                    .CountAsync(r => r.Status == RentalStatus.Cancelled);
 
                 activeRentals = await _context.Rentals
                     .CountAsync(r => r.StartDate <= today && r.EndDate >= today);
@@ -55,6 +58,7 @@ namespace Auto_Rental.Areas.Admin.Controllers
                 ViewBag.TotalRentals = totalRentals;
                 ViewBag.PendingRentals = pendingRentals;
                 ViewBag.ConfirmedRentals = confirmedRentals;
+                ViewBag.CancelledRentals = cancelledRentals;
                 ViewBag.ActiveRentals = activeRentals;
                 ViewBag.AvailabilityPercentage = availabilityPercentage;
 
@@ -67,6 +71,7 @@ namespace Auto_Rental.Areas.Admin.Controllers
                 ViewBag.TotalRentals = 0;
                 ViewBag.PendingRentals = 0;
                 ViewBag.ConfirmedRentals = 0;
+                ViewBag.CancelledRentals = 0;
                 ViewBag.ActiveRentals = 0;
                 ViewBag.AvailabilityPercentage = 0;
             }
